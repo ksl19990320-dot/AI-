@@ -1,4 +1,4 @@
-:root{--bg:#fafafa;--bg-card:#fff;--bg-input:#f3f4f6;--bg-hover:#f0f0f0;--text:#1a1a1a;--text-secondary:#6b7280;--text-muted:#9ca3af;--border:#e5e7eb;--accent:#2563eb;--accent-hover:#1d4ed8;--accent-light:#eff6ff;--danger:#ef4444;--success:#10b981;--radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.06);--shadow-lg:0 10px 25px rgba(0,0,0,.08);--transition:.2s ease;--font:-apple-system,BlinkMacSystemFont,''Segoe UI'',''PingFang SC'',''Microsoft YaHei'',sans-serif;--sidebar-w:280px}
+﻿:root{--bg:#fcfcfc;--bg-card:#f2f2f2;--bg-input:#f3f4f6;--bg-hover:#f0f0f0;--text:#000000;--text-secondary:#6b7280;--text-muted:#9ca3af;--border:#e5e7eb;--accent:#2563eb;--accent-hover:#1d4ed8;--accent-light:#eff6ff;--danger:#ef4444;--success:#10b981;--radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.06);--shadow-lg:0 10px 25px rgba(0,0,0,.08);--transition:.2s ease;--font:-apple-system,BlinkMacSystemFont,''Segoe UI'',''PingFang SC'',''Microsoft YaHei'',sans-serif;--sidebar-w:280px}
 .dark{--bg:#0c0c0c;--bg-card:#161616;--bg-input:#1e1e1e;--bg-hover:#252525;--text:#ededed;--text-secondary:#a0a0a0;--text-muted:#606060;--border:#2a2a2a;--accent:#3b82f6;--accent-hover:#60a5fa;--accent-light:#1e3a5f;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 10px 25px rgba(0,0,0,.4)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-font-smoothing:antialiased}
@@ -35,10 +35,62 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .main-area{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
 
 /* ===== Header ===== */
-.header{display:flex;align-items:center;gap:10px;padding:12px 20px;flex-shrink:0}
+.header{display:flex;align-items:center;padding:12px 20px;flex-shrink:0}.header-left{display:flex;align-items:center;gap:10px;flex-shrink:0}.header-center{flex:1;display:flex;justify-content:center}.header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .header-logo{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#6366f1,#3b82f6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;flex-shrink:0}
 .header h1{font-size:15px;font-weight:600;white-space:nowrap}
-.header-spacer{flex:1}
+/* header-spacer removed - using header-center instead */
+
+/* ===== Header Tabs ===== */
+.header-tabs{display:flex;align-items:center;gap:2px;background:var(--bg-input);border-radius:10px;padding:3px}
+.header-tab{padding:5px 14px;border-radius:8px;border:none;background:transparent;color:var(--text-secondary);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;white-space:nowrap;transition:all var(--transition);display:flex;align-items:center;gap:5px}
+.header-tab:hover{color:var(--text);background:var(--bg-hover)}
+.header-tab.active{background:var(--bg-card);color:var(--text);box-shadow:var(--shadow)}
+
+/* ===== Chat View Toggle ===== */
+.chat-view{display:none;flex:1;flex-direction:column;min-height:0}
+.chat-view.active{display:flex}
+
+/* ===== Dialog Container ===== */
+.dialog-container{flex:1;overflow-y:auto;padding:0 20px}
+.dialog-messages{gap:16px}
+
+/* ===== Dialog Bubbles ===== */
+.dialog-bubble{max-width:80%;animation:fadeIn .3s ease;position:relative}
+.dialog-bubble.user{align-self:flex-end}
+.dialog-bubble.ai{align-self:flex-start}
+.dialog-bubble-text{padding:10px 16px;border-radius:16px;font-size:15px;line-height:1.65;word-break:break-word}
+.dialog-bubble.user .dialog-bubble-text{background:var(--accent);color:#fff;border-radius:18px 4px 18px 18px}
+.dialog-bubble.ai .dialog-bubble-text{background:var(--bg-card);color:var(--text);border:1px solid var(--border);border-radius:4px 18px 18px 18px}
+.dialog-bubble.ai .dialog-bubble-text p{margin:6px 0}
+.dialog-bubble.ai .dialog-bubble-text p:first-child{margin-top:0}
+.dialog-bubble.ai .dialog-bubble-text p:last-child{margin-bottom:0}
+.dialog-bubble.ai .dialog-bubble-text pre{background:var(--bg-input);border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;font-size:13px;line-height:1.5}
+.dialog-bubble.ai .dialog-bubble-text code{font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:13px}
+.dialog-bubble.ai .dialog-bubble-text pre code{background:none;padding:0}
+.dialog-bubble.ai .dialog-bubble-text ul,.dialog-bubble.ai .dialog-bubble-text ol{padding-left:20px;margin:6px 0}
+.dialog-bubble.ai .dialog-bubble-text li{margin:2px 0}
+.dialog-bubble.ai .dialog-bubble-text strong{font-weight:600}
+.dialog-bubble.ai .dialog-bubble-text em{font-style:italic}
+.dialog-bubble.ai .dialog-bubble-text h1,.dialog-bubble.ai .dialog-bubble-text h2,.dialog-bubble.ai .dialog-bubble-text h3{font-weight:600;margin:8px 0 4px;line-height:1.3}
+.dialog-bubble.ai .dialog-bubble-text h1{font-size:18px}
+.dialog-bubble.ai .dialog-bubble-text h2{font-size:16px}
+.dialog-bubble.ai .dialog-bubble-text h3{font-size:14px}
+
+.dialog-bubble-actions{display:flex;gap:4px;margin-top:6px}
+.dialog-bubble-actions button{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);cursor:pointer;font-size:12px;font-family:var(--font);transition:all var(--transition);display:flex;align-items:center;gap:4px}
+.dialog-bubble-actions button:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-light)}
+
+/* ===== Dialog Input ===== */
+.dialog-input{padding:12px 20px 20px;flex-shrink:0}
+.dialog-input-card{max-width:860px;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:16px;padding:16px;position:relative}
+.dialog-toolbar{margin-top:10px;display:flex;align-items:center;justify-content:space-between}
+.dialog-model-badge{font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg-input);border-radius:8px}
+.dialog-send-btn{align-self:flex-end !important}
+
+/* ===== Bridge Button in Dialog ===== */
+.dialog-bridge-btn{padding:4px 10px;border-radius:6px;border:1px dashed var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);transition:all var(--transition);margin-top:6px}
+.dialog-bridge-btn:hover{background:var(--accent);color:#fff;border-style:solid}
+
 
 /* ===== Buttons ===== */
 .btn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text);transition:all var(--transition);white-space:nowrap}
@@ -79,7 +131,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 
 /* ===== Input Bar ===== */
 .input-bar{padding:12px 20px 20px;flex-shrink:0}
-.input-bar-card{max-width:860px;margin:0 auto;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative}
+.input-bar-card{max-width:860px;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:16px;padding:16px;position:relative}
 .input-bar-card.drag-over{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .chat-input{display:block;width:100%;min-height:72px;max-height:360px;padding:12px 16px;border:none;border-radius:10px;background:transparent;color:var(--text);font-size:15px;font-family:var(--font);line-height:1.6;outline:none;resize:none;transition:background var(--transition)}
 .chat-input:focus{background:transparent}
@@ -144,7 +196,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 @keyframes slideUp{from{transform:translateY(10px);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* ===== Responsive ===== */
-@media(max-width:768px){
+@media(max-width:768px){`n  .header-tabs{gap:0}`n  .header-tab{padding:4px 10px;font-size:12px}
   .sidebar{width:56px;min-width:56px}
   .sidebar-title,.project-item .proj-name,.btn-new-project{display:none}
   .sidebar-header{justify-content:center;padding:12px 0}
@@ -156,7 +208,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
   .toolbar-select{font-size:12px;padding:5px 8px}
   .btn-send{padding:6px 14px;font-size:13px}
 }
-@media(max-width:480px){
+@media(max-width:480px){`n  .header-tab{padding:4px 8px;font-size:11px}
   .sidebar{display:none}
   .header{padding:10px 12px}
   .header h1{font-size:13px}

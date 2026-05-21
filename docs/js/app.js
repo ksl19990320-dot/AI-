@@ -23,7 +23,28 @@
     generating: false,
     viewMode: 'thumb',
     abortController: null,
+    currentTab: 'image',
+    dialogGenerating: false,
   };
+
+  // ===== Simple Markdown Renderer =====
+  function renderMarkdown(text) {
+    if (!text) return '';
+    let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p>\s*<\/p>/g, '');
+    html = html.replace(/((?:<li>.*?<\/li>\s*)+)/g, '<ul>$1</ul>');
+    return html;
+  }
 
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
@@ -33,6 +54,7 @@
     renderProviderSelect();
     loadProjects();
     loadMessages();
+    loadDialogMessages();
     bindEvents();
     document.body.classList.add('dark');
     $('#chatInput').focus();
@@ -87,6 +109,7 @@
     await db.setSetting('lastProject', projectId || '');
     await loadProjects();
     loadMessages();
+    loadDialogMessages();
     $('#chatInput').focus();
   };
 
@@ -117,7 +140,7 @@
   async function loadMessages() {
     try {
       const all = await db._getAll('history');
-      let items = all.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      let items = all.filter(i => i.type !== 'dialog').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       if (state.currentProjectId) items = items.filter(i => i.project_id === state.currentProjectId);
 
       const container = $('#chatMessages');
@@ -518,8 +541,134 @@
     }
   }
 
+  // ===== Tab Switching =====
+  function switchTab(tab) {
+    state.currentTab = tab;
+    document.querySelectorAll('.header-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === tab);
+    });
+    document.querySelectorAll('.chat-view').forEach(v => v.classList.remove('active'));
+    if (tab === 'image') {
+      document.getElementById('imageView').classList.add('active');
+      document.getElementById('inputBar').classList.add('active');
+      document.getElementById('chatInput').focus();
+    } else {
+      document.getElementById('dialogView').classList.add('active');
+      document.getElementById('dialogInputBar').classList.add('active');
+      document.getElementById('dialogInput').focus();
+    }
+  }
+
+  // ===== Dialogue =====
+  async function loadDialogMessages() {
+    try {
+      const all = await db._getAll('history');
+      let items = all.filter(i => i.type === 'dialog').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      if (state.currentProjectId) items = items.filter(i => i.project_id === state.currentProjectId);
+      const container = document.getElementById('dialogMessages');
+      if (!container) return;
+      container.innerHTML = '';
+      if (items.length === 0) { document.getElementById('dialogEmpty').classList.remove('hidden'); return; }
+      document.getElementById('dialogEmpty').classList.add('hidden');
+      items.forEach(item => renderDialogBubble(item));
+      scrollDialogToBottom();
+    } catch(e) { console.error('loadDialogMessages:', e); }
+  }
+
+  function renderDialogBubble(item) {
+    const container = document.getElementById('dialogMessages');
+    if (!container) return;
+    const el = document.createElement('div');
+    if (item.role === 'user') {
+      el.className = 'dialog-bubble user';
+      el.innerHTML = '<div class="dialog-bubble-text">' + escapeHtml(item.content || '') + '</div>';
+    } else {
+      el.className = 'dialog-bubble ai';
+      el.innerHTML = '<div class="dialog-bubble-text">' + renderMarkdown(item.content || '') + '</div>'
+        + '<div class="dialog-bubble-actions"><button class="dialog-bridge-btn" onclick="window._bridgeToImage(\'' + item.id + '\')">用此描述生图</button></div>';
+    }
+    container.appendChild(el);
+  }
+
+  function scrollDialogToBottom() {
+    requestAnimationFrame(() => {
+      const dc = document.getElementById('dialogContainer');
+      if (dc) dc.scrollTop = dc.scrollHeight;
+    });
+  }
+
+  async function sendDialogMessage() {
+    if (state.dialogGenerating) return;
+    const input = document.getElementById('dialogInput');
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) return;
+    const hasKey = providers.getApiKey('bltcy');
+    if (!hasKey) { toast('请先配置 BLTCY AI 的 API Key', 'error'); openSettings(); return; }
+    document.getElementById('dialogEmpty').classList.add('hidden');
+    const userMsg = { id: crypto.randomUUID(), role: 'user', type: 'dialog', content, project_id: state.currentProjectId, created_at: new Date().toISOString() };
+    await db._put('history', userMsg);
+    renderDialogBubble(userMsg);
+    input.value = '';
+    scrollDialogToBottom();
+    state.dialogGenerating = true;
+    const sendBtn = document.getElementById('dialogSendBtn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '...'; }
+    const loadingEl = document.createElement('div');
+    loadingEl.className = 'loading-dots';
+    loadingEl.id = 'dialogLoadingDots';
+    loadingEl.innerHTML = '<span></span><span></span><span></span>';
+    const dm = document.getElementById('dialogMessages');
+    if (dm) dm.appendChild(loadingEl);
+    scrollDialogToBottom();
+    try {
+      const all = await db._getAll('history');
+      let historyItems = all.filter(i => i.type === 'dialog').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      if (state.currentProjectId) historyItems = historyItems.filter(i => i.project_id === state.currentProjectId);
+      const recentItems = historyItems.slice(-20);
+      const messages = recentItems.map(i => ({ role: i.role === 'user' ? 'user' : 'assistant', content: i.content }));
+      const reply = await providers.chat({ providerKey: 'bltcy', model: 'gemini-3.1-pro-preview', messages });
+      const aiMsg = { id: crypto.randomUUID(), role: 'ai', type: 'dialog', content: reply, project_id: state.currentProjectId, created_at: new Date().toISOString() };
+      await db._put('history', aiMsg);
+      const ld = document.getElementById('dialogLoadingDots');
+      if (ld) ld.remove();
+      renderDialogBubble(aiMsg);
+      scrollDialogToBottom();
+    } catch (err) {
+      const ld = document.getElementById('dialogLoadingDots');
+      if (ld) ld.remove();
+      toast(err.message || '对话失败', 'error');
+      input.value = content;
+      console.error(err);
+    } finally {
+      state.dialogGenerating = false;
+      const sb = document.getElementById('dialogSendBtn');
+      if (sb) { sb.disabled = false; sb.textContent = '↑'; }
+    }
+  }
+
+  window._bridgeToImage = async function(msgId) {
+    const item = await db.getHistoryItem(msgId);
+    if (!item || !item.content) return;
+    let prompt = '';
+    let match = item.content.match(/(?:["\u201C\u201D])([^"\u201C\u201D]{10,200})(?:["\u201C\u201D])/);
+    let codeMatch = item.content.match(/```\n?([\s\S]{10,300}?)```/);
+    if (match) prompt = match[1].trim();
+    else if (codeMatch) prompt = codeMatch[1].trim().replace(/\n/g, ' ');
+    else prompt = item.content.substring(0, 200).trim();
+    document.getElementById('chatInput').value = prompt;
+    autoResizeTextarea();
+    switchTab('image');
+    toast('描述词已填入，选择模型后点击生成', 'success');
+  };
+
   // ===== Events =====
   function bindEvents() {
+    // Tab switching
+    document.querySelectorAll('.header-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    });
+
     $('#sendBtn')?.addEventListener('click', sendMessage);
 
     const inputEl = $('#chatInput');
@@ -581,6 +730,13 @@
     $('#settingsBtn')?.addEventListener('click', openSettings);
     $('#settingsClose')?.addEventListener('click', closeSettings);
     $('#settingsModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) closeSettings(); });
+
+    // Dialog events
+    const dialogInputEl = document.getElementById('dialogInput');
+    dialogInputEl?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDialogMessage(); }
+    });
+    document.getElementById('dialogSendBtn')?.addEventListener('click', sendDialogMessage);
 
     $('#projectModalClose')?.addEventListener('click', () => $('#projectModal').classList.add('hidden'));
     $('#projectModal')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) $('#projectModal').classList.add('hidden'); });

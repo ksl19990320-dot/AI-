@@ -1,4 +1,4 @@
-// ===== 多 Provider API 调用层 =====
+﻿// ===== 多 Provider API 调用层 =====
 
 const STYLE_GUIDES = {
   'photorealistic': 'photorealistic, highly detailed, natural lighting, 8k resolution, sharp focus, professional photography',
@@ -218,6 +218,30 @@ class ImageProviders {
       p = p + ', maintain composition and similarity to the reference image, strength ' + strength;
     }
     return p;
+  }
+
+  // ===== 鏅鸿兘瀵硅瘽 (Chat) =====
+  async chat({ providerKey, model, messages }) {
+    const provider = this.providers[providerKey];
+    if (!provider) throw new Error('链煡鎻愪緵鍟? ' + providerKey);
+    const apiKey = this.getApiKey(providerKey);
+    if (!apiKey) throw new Error('璇峰厛閰嶇疆 ' + provider.name + ' 鐨?API Key');
+
+    const resp = await fetch(provider.baseURL + '/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({ model, messages, max_tokens: 4096 }),
+    });
+
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      const msg = json.error?.message || json.message || 'HTTP ' + resp.status;
+      throw new Error('[' + resp.status + '] ' + msg);
+    }
+    return json.choices[0].message.content || '';
   }
 }
 

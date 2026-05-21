@@ -28,24 +28,46 @@
   <main class="main-area">
 
     <header class="header">
-      <div class="header-logo">🎨</div>
-      <h1>AI 生图工作台</h1>
-      <div class="header-spacer"></div>
-      <button class="btn btn-ghost btn-sm" id="settingsBtn">🔑 设置</button>
-      <button class="btn btn-ghost btn-icon" id="themeToggle">☀</button>
+      <div class="header-left">
+        <div class="header-logo">🎨</div>
+        <h1>AI 生图工作台</h1>
+      </div>
+      <div class="header-center">
+        <div class="header-tabs" id="headerTabs">
+          <button class="header-tab active" data-tab="image">🎨 生图</button>
+          <button class="header-tab" data-tab="dialog">💬 AI 对话</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-ghost btn-sm" id="settingsBtn">🔑 设置</button>
+        <button class="btn btn-ghost btn-icon" id="themeToggle">☀</button>
+      </div>
     </header>
 
-    <div class="chat-container" id="chatContainer">
+    <div class="chat-view active" id="imageView">
+      <div class="chat-container" id="chatContainer">
       <div class="chat-empty" id="chatEmpty">
         <div class="chat-empty-icon">🎨</div>
         <p>输入描述词开始创作</p>
         <p class="chat-empty-hint">上传参考图 📎 · 选择模型 · 调整比例风格</p>
       </div>
       <div class="chat-messages" id="chatMessages"></div>
+      </div>
+    </div>
+
+    <div class="chat-view" id="dialogView">
+      <div class="chat-container dialog-container" id="dialogContainer">
+        <div class="chat-empty" id="dialogEmpty">
+          <div class="chat-empty-icon">💬</div>
+          <p>Gemini 3.1 Pro 智能对话</p>
+          <p class="chat-empty-hint">随意聊天，也可以帮你构思生图 Prompt</p>
+        </div>
+        <div class="chat-messages dialog-messages" id="dialogMessages"></div>
+      </div>
     </div>
 
     <!-- ===== 输入栏 ===== -->
-    <div class="input-bar" id="inputBar">
+    <div class="input-bar chat-view active" id="inputBar">
       <div class="input-bar-card">
         <div class="drag-overlay" id="dragOverlay">
           <div class="drag-overlay-icon">📎</div>
@@ -82,6 +104,18 @@
             </select>
           </div>
           <button class="btn btn-send-icon" id="sendBtn" title="生成">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar chat-view dialog-input" id="dialogInputBar">
+      <div class="input-bar-card dialog-input-card">
+        <textarea class="chat-input" id="dialogInput" placeholder="和 Gemini 3.1 Pro 聊天..." rows="3"></textarea>
+        <div class="input-toolbar dialog-toolbar">
+          <div class="toolbar-left">
+            <span class="dialog-model-badge">🧠 Gemini 3.1 Pro</span>
+          </div>
+          <button class="btn btn-send-icon dialog-send-btn" id="dialogSendBtn" title="发送">↑</button>
         </div>
       </div>
     </div>
