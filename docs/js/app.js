@@ -791,6 +791,7 @@
     return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
 
+  function getImageDimensions(base64) { return new Promise(resolve => { const img = new Image(); img.onload = () => resolve({w:img.naturalWidth,h:img.naturalHeight}); img.onerror = () => resolve(null); img.src = 'data:image/png;base64,' + base64; }); }
   function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
 
   init();
