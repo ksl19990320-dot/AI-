@@ -606,7 +606,10 @@
     const hasKey = providers.getApiKey('bltcy');
     if (!hasKey) { toast('请先配置 BLTCY AI 的 API Key', 'error'); openSettings(); return; }
     document.getElementById('dialogEmpty').classList.add('hidden');
-    const userMsg = { id: crypto.randomUUID(), role: 'user', type: 'dialog', content, project_id: state.currentProjectId, created_at: new Date().toISOString() };
+    const attachedImages = [...state.dialogAttachments];
+    state.dialogAttachments = [];
+    renderDialogAttachPreview();
+    const userMsg = { id: crypto.randomUUID(), role: 'user', type: 'dialog', content, images: attachedImages.map(i => i.base64), project_id: state.currentProjectId, created_at: new Date().toISOString() };
     await db._put('history', userMsg);
     renderDialogBubble(userMsg);
     input.value = '';
@@ -626,7 +629,16 @@
       let historyItems = all.filter(i => i.type === 'dialog').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       if (state.currentProjectId) historyItems = historyItems.filter(i => i.project_id === state.currentProjectId);
       const recentItems = historyItems.slice(-20);
-      const messages = recentItems.map(i => ({ role: i.role === 'user' ? 'user' : 'assistant', content: i.content }));
+      const messages = [];
+      recentItems.forEach(i => {
+        if (i.role === 'user' && i.images && i.images.length > 0) {
+          const parts = i.images.map(b64 => ({ type: 'image_url', image_url: { url: 'data:image/png;base64,' + b64 } }));
+          parts.push({ type: 'text', text: i.content });
+          messages.push({ role: 'user', content: parts });
+        } else {
+          messages.push({ role: i.role === 'user' ? 'user' : 'assistant', content: i.content });
+        }
+      });
       const reply = await providers.chat({ providerKey: 'bltcy', model: document.getElementById('dialogModelSelect')?.value || 'gemini-3.1-pro-preview', messages });
       const aiMsg = { id: crypto.randomUUID(), role: 'ai', type: 'dialog', content: reply, project_id: state.currentProjectId, created_at: new Date().toISOString() };
       await db._put('history', aiMsg);
@@ -684,7 +696,10 @@
       fileInput.click();
     });
 
-    document.addEventListener('paste', handlePaste);
+    document.addEventListener('paste', (e) => {
+      if (state.currentTab === 'dialog') { handleDialogPaste(e); return; }
+      handlePaste(e);
+    });
     document.addEventListener('keydown', handleKeyDown);
 
     const inputBar = $('#inputBar');
@@ -733,6 +748,13 @@
 
     // Dialog events
     const dialogInputEl = document.getElementById('dialogInput');
+
+    document.getElementById('dialogAttachBtn')?.addEventListener('click', () => {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file'; fileInput.accept = 'image/*'; fileInput.multiple = true;
+      fileInput.onchange = (e) => handleDialogAttach(e.target.files);
+      fileInput.click();
+    });
     dialogInputEl?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDialogMessage(); }
     });

@@ -82,10 +82,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 
 /* ===== Dialog Input ===== */
 .dialog-input{padding:12px 20px 20px;flex:0 0 auto!important}
-.dialog-input-card{max-width:860px;margin:0 auto;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:16px;position:relative}
+
 .dialog-toolbar{margin-top:10px;display:flex;align-items:center;justify-content:space-between}
-.dialog-model-badge{font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--bg-input);border-radius:8px}
-.dialog-send-btn{align-self:flex-end !important}
+
+
 
 /* ===== Bridge Button in Dialog ===== */
 .dialog-bridge-btn{padding:4px 10px;border-radius:6px;border:1px dashed var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-size:12px;font-family:var(--font);transition:all var(--transition);margin-top:6px}
