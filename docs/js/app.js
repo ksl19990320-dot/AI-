@@ -24,7 +24,7 @@
     viewMode: 'thumb',
     abortController: null,
     currentTab: 'image',
-    dialogGenerating: false,
+    dialogGenerating: false, dialogAttachments: [],
   };
 
   // ===== Simple Markdown Renderer =====
@@ -597,6 +597,27 @@
     });
   }
 
+  // ===== Dialog Attachments =====
+  function handleDialogAttach(files) {
+    (Array.from(files||[])).forEach(file => {
+      if (!file||!file.type.startsWith('image/')) return;
+      const r = new FileReader();
+      r.onload = e => { state.dialogAttachments.push({id:crypto.randomUUID(),base64:e.target.result.split(',')[1]}); renderDialogAttachPreview(); };
+      r.readAsDataURL(file);
+    });
+  }
+  function handleDialogPaste(e) {
+    if (state.currentTab!=='dialog') return;
+    const imgs = []; for (const it of (e.clipboardData?.items||[])) { if (it.type.startsWith('image/')) imgs.push(it.getAsFile()); }
+    if (imgs.length>0) { e.preventDefault(); handleDialogAttach(imgs); }
+  }
+  function renderDialogAttachPreview() {
+    const c = document.getElementById('dialogAttachPreview'); if(!c) return;
+    if (state.dialogAttachments.length===0) { c.classList.add('hidden'); c.innerHTML=''; return; }
+    c.classList.remove('hidden');
+    c.innerHTML = state.dialogAttachments.map(img => '<div class="attach-item"><img src="data:image/png;base64,'+img.base64+'"><button class="attach-del" onclick="event.stopPropagation();window._removeDialogAttach(\''+img.id+'\')">\u00d7</button></div>').join('');
+  }
+  window._removeDialogAttach = function(id) { state.dialogAttachments = state.dialogAttachments.filter(i=>i.id!==id); renderDialogAttachPreview(); };
   async function sendDialogMessage() {
     if (state.dialogGenerating) return;
     const input = document.getElementById('dialogInput');

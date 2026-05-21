@@ -81,6 +81,7 @@
             <select id="providerSelect" class="toolbar-select"><option value="">提供商</option></select>
             <select id="modelSelect" class="toolbar-select"><option value="">模型</option></select>
             <select id="sizeSelect" class="toolbar-select">
+              <option value="">原始</option>
               <option value="1024x1024">1:1</option>
               <option value="1024x768">4:3</option>
               <option value="768x1024">3:4</option>
@@ -108,7 +109,7 @@
       </div>
     </div>
 
-    <div class="input-bar chat-view dialog-input" id="dialogInputBar">
+    <div class="input-bar chat-view" id="dialogInputBar">
       <div class="input-bar-card input-bar-card">
         <textarea class="chat-input" id="dialogInput" placeholder="和 Gemini 3.1 Pro 聊天..." rows="3"></textarea>
         <div class="attach-preview hidden" id="dialogAttachPreview"></div>
