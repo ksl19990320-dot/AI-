@@ -34,7 +34,17 @@ class ImageProviders {
           { id: 'dall-e-3', name: 'DALL·E 3', t2i: true, i2i: false },
         ],
       },
-      'doubao': {
+      'google': {
+        name: 'Google AI Studio (免费)',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta',
+        chatModels: [
+          { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (免费)' },
+          { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (免费)' },
+        ],
+        imageModels: [
+          { id: 'imagen-4.0-generate-001', name: 'Imagen 4 (免费)', t2i: true, i2i: false },
+        ],
+      },            'doubao': {
         name: '豆包',
         baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
         useImagesEndpoint: false,
@@ -247,4 +257,34 @@ class ImageProviders {
   }
 }
 
+
+  async googleChat(model, messages) {
+    var apiKey = this.getApiKey('google');
+    if (!apiKey) throw new Error('请先配置 Google AI Studio 的 API Key');
+    var contents = messages.map(function(m) {
+      return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] };
+    });
+    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':generateContent?key=' + apiKey, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: contents }),
+    });
+    var json = await resp.json().catch(function() { return {}; });
+    if (!resp.ok) throw new Error('[' + resp.status + '] ' + (json.error && json.error.message || 'Google API error'));
+    var text = json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] && json.candidates[0].content.parts[0].text || '';
+    return text;
+  }
+
+  async googleTextToImage(model, prompt) {
+    var apiKey = this.getApiKey('google');
+    if (!apiKey) throw new Error('请先配置 Google AI Studio 的 API Key');
+    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':predict?key=' + apiKey, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } }),
+    });
+    var json = await resp.json().catch(function() { return {}; });
+    if (!resp.ok) throw new Error('[' + resp.status + '] ' + (json.error && json.error.message || 'Imagen error'));
+    var b64 = json.predictions && json.predictions[0] && json.predictions[0].bytesBase64Encoded;
+    if (!b64) throw new Error('Imagen 未返回图片');
+    return { base64: b64, revisedPrompt: prompt };
+  }
 window.ImageProviders = ImageProviders;

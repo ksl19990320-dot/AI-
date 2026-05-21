@@ -256,7 +256,10 @@
         contextImages = [lastAiMsg.imageBase64];
       }
 
-      if (contextImages.length > 0) {
+      if (state.selectedProvider === 'google') {
+        const gModel = state.selectedModel || 'imagen-4.0-generate-001';
+        result = await providers.googleTextToImage(gModel, pendingPrompt);
+      } else if (contextImages.length > 0) {
         const provider = providers.getProvider(state.selectedProvider);
         const modelInfo = provider?.models?.find(m => m.id === state.selectedModel);
         if (modelInfo && modelInfo.i2i === false) {
@@ -267,7 +270,10 @@
       if (state.abortController.signal.aborted) throw new Error('已取消');
 
       let result;
-      if (contextImages.length > 0) {
+      if (state.selectedProvider === 'google') {
+        const gModel = state.selectedModel || 'imagen-4.0-generate-001';
+        result = await providers.googleTextToImage(gModel, pendingPrompt);
+      } else if (contextImages.length > 0) {
         result = await providers.imageToImage({
           providerKey: state.selectedProvider, model: state.selectedModel,
           prompt: pendingPrompt || 'enhance this image', negativePrompt: '',
@@ -474,7 +480,7 @@
     const select = $('#providerSelect');
     if (!select) return;
     select.innerHTML = '<option value="">提供商</option>';
-    providers.getProviderKeys().forEach(key => {
+    providers.getProviderKeys().forEach(key => { if (key === 'google' && state.currentTab === 'dialog') return;
       const p = providers.getProvider(key);
       select.innerHTML += '<option value="' + key + '" ' + (state.selectedProvider === key ? 'selected' : '') + '>' + p.name + '</option>';
     });
@@ -660,7 +666,12 @@
           messages.push({ role: i.role === 'user' ? 'user' : 'assistant', content: i.content });
         }
       });
-      const reply = await providers.chat({ providerKey: 'bltcy', model: document.getElementById('dialogModelSelect')?.value || 'gemini-3.1-pro-preview', messages });
+      let dialogModel = document.getElementById('dialogModelSelect')?.value || 'gemini-3.1-pro-preview';
+      let reply;
+      if (dialogModel.startsWith('gemini-2.5')) {
+        reply = await providers.googleChat(dialogModel, messages);
+      } else {
+        reply = await providers.chat({ providerKey: 'bltcy', model: dialogModel, messages }); }
       const aiMsg = { id: crypto.randomUUID(), role: 'ai', type: 'dialog', content: reply, project_id: state.currentProjectId, created_at: new Date().toISOString() };
       await db._put('history', aiMsg);
       const ld = document.getElementById('dialogLoadingDots');
