@@ -1,0 +1,30 @@
+﻿*** Begin Patch
+*** Update File: D:\experience\ai-image-gen\public\index.html
+@@
+     <!-- ===== 输入栏 ===== -->
+     <div class="input-bar">
+-      <div class="input-row">
+-        <button class="btn btn-icon" id="attachBtn" title="上传参考图">📎</button>
+-        <div class="attach-preview hidden" id="attachPreview"></div>
+-        <input type="text" class="chat-input" id="chatInput" placeholder="描述你想要的画面..." autofocus>
+-        <button class="btn btn-primary btn-send" id="sendBtn">→</button>
+-      </div>
++      <div class="input-bar-card">
++        <div class="input-row">
++          <input type="text" class="chat-input" id="chatInput" placeholder="描述你想要的画面..." autofocus>
++          <button class="btn btn-primary btn-send" id="sendBtn">→</button>
++        </div>
+       <div class="input-toolbar">
++          <button class="toolbar-ref-btn" id="attachBtn">参考图</button>
++          <div class="attach-preview hidden" id="attachPreview"></div>
+         <select id="providerSelect" class="toolbar-select"><option value="">提供商</option></select>
+@@
+ 
+-<!-- ===== Loading ===== -->
+-<div class="loading-overlay hidden" id="loadingOverlay">
+-  <div class="spinner"></div>
+-  <div class="loading-text">AI 正在生成...</div>
+-</div>
+-
+ <!-- ===== Toast ===== -->
+*** End Patch
