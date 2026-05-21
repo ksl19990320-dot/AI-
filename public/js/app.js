@@ -668,7 +668,7 @@
       });
       let dialogModel = document.getElementById('dialogModelSelect')?.value || 'gemini-3.1-pro-preview';
       let reply;
-      if (dialogModel.startsWith('gemini-2.5')) {
+      if (dialogModel.startsWith('gemini-2.')) {
         reply = await providers.googleChat(dialogModel, messages);
       } else {
         reply = await providers.chat({ providerKey: 'bltcy', model: dialogModel, messages }); }
