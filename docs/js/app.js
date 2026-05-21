@@ -1,4 +1,14 @@
-(async function() {
+﻿(async function() {
+  // v2.1.0 | 2026-05-21 | drag-fix + async-init + null-guards
+  window.addEventListener('error', function(e) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:8px 16px;border-radius:8px;z-index:99999;font-size:13px;max-width:90vw';
+    el.textContent = 'JS Error: ' + (e.message || 'unknown') + ' (' + (e.filename || '') + ':' + (e.lineno || '') + ')';
+    document.body.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 8000);
+    console.error('Global error:', e.message, e.filename, e.lineno);
+  });
+
   const db = new ImageDB();
   try { await db.open(); } catch(e) { console.error('DB open failed:', e); }
 
@@ -18,8 +28,8 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
-  function init() {
-    loadSettings();
+  async function init() {
+    await loadSettings();
     renderProviderSelect();
     loadProjects();
     loadMessages();
@@ -194,6 +204,7 @@
     state.abortController = new AbortController();
 
     const sendBtn = $('#sendBtn');
+    if (!sendBtn) return;
     sendBtn.textContent = '×';
     sendBtn.classList.add('btn-cancel');
 
@@ -295,9 +306,11 @@
     const ld = $('#loadingDots');
     if (ld) ld.remove();
     const sendBtn = $('#sendBtn');
-    sendBtn.disabled = false;
-    sendBtn.textContent = '↑';
-    sendBtn.classList.remove('btn-cancel');
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.textContent = '↑';
+      sendBtn.classList.remove('btn-cancel');
+    }
   }
 
   // ===== Message actions =====
@@ -532,13 +545,13 @@
       ['dragenter','dragover'].forEach(evt => {
         inputBar.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); });
       });
-      document.addEventListener('dragenter', (e) => { e.preventDefault(); dragCounter++; inputBar.classList.add('drag-over'); });
-      document.addEventListener('dragleave', (e) => { e.preventDefault(); dragCounter--; if (dragCounter <= 0) { dragCounter = 0; inputBar.classList.remove('drag-over'); } });
+      document.addEventListener('dragenter', (e) => { e.preventDefault(); dragCounter++; inputBar.querySelector('.input-bar-card')?.classList.add('drag-over'); });
+      document.addEventListener('dragleave', (e) => { e.preventDefault(); dragCounter--; if (dragCounter <= 0) { dragCounter = 0; inputBar.querySelector('.input-bar-card')?.classList.remove('drag-over'); } });
       document.addEventListener('dragover', (e) => { e.preventDefault(); });
       document.addEventListener('drop', (e) => {
         e.preventDefault();
         dragCounter = 0;
-        inputBar.classList.remove('drag-over');
+        inputBar.querySelector('.input-bar-card')?.classList.remove('drag-over');
         if (e.dataTransfer?.files?.length) handleAttach(e.dataTransfer.files);
       });
     }
@@ -582,5 +595,5 @@
   function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
 
   init();
-  console.log('🎨 AI Image Gen Workspace Ready');
+  console.log('AI Image Gen Workspace v2.1.0 Ready');
 })();
