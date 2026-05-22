@@ -480,7 +480,7 @@
     const select = $('#providerSelect');
     if (!select) return;
     select.innerHTML = '<option value="">提供商</option>';
-    providers.getProviderKeys().forEach(key => { if (key === 'google' && state.currentTab === 'dialog') return;
+    providers.getProviderKeys().forEach(key => { if (key === 'google') return; // Google only for dialog tab
       const p = providers.getProvider(key);
       select.innerHTML += '<option value="' + key + '" ' + (state.selectedProvider === key ? 'selected' : '') + '>' + p.name + '</option>';
     });
