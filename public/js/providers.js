@@ -44,7 +44,8 @@ class ImageProviders {
         imageModels: [
           { id: 'imagen-4.0-generate-001', name: 'Imagen 4 (免费)', t2i: true, i2i: false },
         ],
-      },            'doubao': {
+      },
+      'doubao': {
         name: '豆包',
         baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
         useImagesEndpoint: false,
@@ -255,8 +256,6 @@ class ImageProviders {
     }
     return json.choices[0].message.content || '';
   }
-}
-
 
   async googleChat(model, messages) {
     var apiKey = this.getApiKey('google');
@@ -270,8 +269,7 @@ class ImageProviders {
     });
     var json = await resp.json().catch(function() { return {}; });
     if (!resp.ok) throw new Error('[' + resp.status + '] ' + (json.error && json.error.message || 'Google API error'));
-    var text = json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] && json.candidates[0].content.parts[0].text || '';
-    return text;
+    return (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] && json.candidates[0].content.parts[0].text) || '';
   }
 
   async googleTextToImage(model, prompt) {
@@ -287,4 +285,6 @@ class ImageProviders {
     if (!b64) throw new Error('Imagen 未返回图片');
     return { base64: b64, revisedPrompt: prompt };
   }
+}
+
 window.ImageProviders = ImageProviders;
