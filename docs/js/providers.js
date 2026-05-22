@@ -16,7 +16,7 @@ class ImageProviders {
     this.providers = {
       'bltcy': {
         name: 'BLTCY AI',
-        baseURL: 'https://api.bltcy.ai/v1beta',
+        baseURL: 'https://api.bltcy.ai/v1',
         useImagesEndpoint: true,
         models: [
           { id: 'gpt-image-2', name: 'GPT Image 2.0', t2i: true, i2i: true },
