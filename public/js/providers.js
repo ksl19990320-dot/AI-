@@ -16,7 +16,7 @@ class ImageProviders {
     this.providers = {
       'bltcy': {
         name: 'BLTCY AI',
-        baseURL: 'https://api.bltcy.ai/v1',
+        baseURL: 'https://api.bltcy.ai/v1beta',
         useImagesEndpoint: true,
         models: [
           { id: 'gpt-image-2', name: 'GPT Image 2.0', t2i: true, i2i: true },
@@ -27,7 +27,7 @@ class ImageProviders {
       },
       'chatgpt-image': {
         name: 'ChatGPT Image',
-        baseURL: 'https://api.openai.com/v1',
+        baseURL: 'https://api.openai.com/v1beta',
         useImagesEndpoint: false,
         models: [
           { id: 'gpt-image-1', name: 'ChatGPT Image 2', t2i: true, i2i: true },
@@ -36,7 +36,7 @@ class ImageProviders {
       },
       'google': {
         name: 'Google AI Studio (免费)',
-        baseURL: 'https://generativelanguage.googleapis.com/v1',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta',
         chatModels: [
           { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (免费)' },
           { id: 'gemini-2.5-pro-exp', name: 'Gemini 2.5 Pro (免费)' },
@@ -260,14 +260,20 @@ class ImageProviders {
   async googleChat(model, messages) {
     var apiKey = this.getApiKey('google');
     if (!apiKey) throw new Error('请先配置 Google AI Studio 的 API Key');
-    var contents = messages.map(function(m) {
-      return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] };
-    });
+    var contents = [];
+    for (var i = 0; i < messages.length; i++) {
+      var m = messages[i];
+      var role = m.role === 'assistant' ? 'model' : 'user';
+      contents.push({ role: role, parts: [{ text: String(m.content) }] });
+    }
+    var body = { contents: contents };
+    console.log('[Google API] request:', JSON.stringify(body).substring(0, 200));
     var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':generateContent?key=' + apiKey, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: contents }),
+      body: JSON.stringify(body),
     });
     var json = await resp.json().catch(function() { return {}; });
+    console.log('[Google API] response:', JSON.stringify(json).substring(0, 200));
     if (!resp.ok) throw new Error('[' + resp.status + '] ' + (json.error && json.error.message || 'Google API error'));
     return (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts && json.candidates[0].content.parts[0] && json.candidates[0].content.parts[0].text) || '';
   }
