@@ -267,8 +267,9 @@ class ImageProviders {
     }
     var body = { contents: contents };
     console.log('[Google API] request:', JSON.stringify(body).substring(0, 200));
-    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':generateContent?key=' + apiKey, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':generateContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify(body),
     });
     var json = await resp.json().catch(function() { return {}; });
@@ -280,8 +281,9 @@ class ImageProviders {
   async googleTextToImage(model, prompt) {
     var apiKey = this.getApiKey('google');
     if (!apiKey) throw new Error('请先配置 Google AI Studio 的 API Key');
-    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':predict?key=' + apiKey, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    var resp = await fetch(this.providers.google.baseURL + '/models/' + model + ':predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } }),
     });
     var json = await resp.json().catch(function() { return {}; });
