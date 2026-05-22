@@ -36,9 +36,9 @@ class ImageProviders {
       },
       'google': {
         name: 'Google AI Studio (免费)',
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta',
+        baseURL: 'https://generativelanguage.googleapis.com/v1',
         chatModels: [
-          { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (免费)' },
+          { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (免费)' },
           { id: 'gemini-2.5-pro-exp', name: 'Gemini 2.5 Pro (免费)' },
         ],
         imageModels: [
