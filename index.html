@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="app-version" content="2.1.0-20260521">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 图片生成工作台</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b82f6'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18'>🎨</text></svg>">
+</head>
+<body class="dark">
+
+<div class="app-layout">
+
+  <!-- ===== 左侧项目栏 ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">项目库</span>
+      <button class="btn-view-toggle" id="viewToggle" title="切换视图">≡</button>
+    </div>
+    <div class="project-list" id="projectList">
+      <!-- JS 动态渲染 -->
+    </div>
+    <button class="btn-new-project" id="newProjectBtn">+ 新建项目</button>
+  </aside>
+
+  <!-- ===== 右侧主区域 ===== -->
+  <main class="main-area">
+
+    <header class="header">
+      <div class="header-left">
+        <div class="header-logo">🎨</div>
+        <h1>AI 生图工作台</h1>
+      </div>
+      <div class="header-center">
+        <div class="header-tabs" id="headerTabs">
+          <button class="header-tab active" data-tab="image">🎨 生图</button>
+          <button class="header-tab" data-tab="dialog">💬 AI 对话</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-ghost btn-sm" id="settingsBtn">🔑 设置</button>
+        <button class="btn btn-ghost btn-icon" id="themeToggle">☀</button>
+      </div>
+    </header>
+
+    <div class="chat-view active" id="imageView">
+      <div class="chat-container" id="chatContainer">
+      <div class="chat-empty" id="chatEmpty">
+        <div class="chat-empty-icon">🎨</div>
+        <p>输入描述词开始创作</p>
+        <p class="chat-empty-hint">上传参考图 📎 · 选择模型 · 调整比例风格</p>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      </div>
+    </div>
+
+    <div class="chat-view" id="dialogView">
+      <div class="chat-container dialog-container" id="dialogContainer">
+        <div class="chat-empty" id="dialogEmpty">
+          <div class="chat-empty-icon">💬</div>
+          <p>Gemini 3.1 Pro 智能对话</p>
+          <p class="chat-empty-hint">随意聊天，也可以帮你构思生图 Prompt</p>
+        </div>
+        <div class="chat-messages dialog-messages" id="dialogMessages"></div>
+      </div>
+    </div>
+
+    <!-- ===== 输入栏 ===== -->
+    <div class="input-bar chat-view active" id="inputBar">
+      <div class="input-bar-card">
+        <div class="drag-overlay" id="dragOverlay">
+          <div class="drag-overlay-icon">📎</div>
+          <div class="drag-overlay-text">释放图片即可上传</div>
+        </div>
+        <textarea class="chat-input" id="chatInput" placeholder="描述你想要的画面..." rows="3" autofocus></textarea>
+        <div class="attach-preview hidden" id="attachPreview"></div>
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <button class="toolbar-ref-btn" id="attachBtn">参考图</button>
+            <select id="providerSelect" class="toolbar-select"><option value="">提供商</option></select>
+            <select id="modelSelect" class="toolbar-select"><option value="">模型</option></select>
+            <select id="sizeSelect" class="toolbar-select">
+              <option value="">原始</option>
+              <option value="1024x1024">1:1</option>
+              <option value="1024x768">4:3</option>
+              <option value="768x1024">3:4</option>
+              <option value="1792x1024">16:9</option>
+              <option value="1024x1792">9:16</option>
+            </select>
+            <select id="styleSelect" class="toolbar-select">
+              <option value="">不限风格</option>
+              <option value="photorealistic">写实</option>
+              <option value="anime">二次元</option>
+              <option value="oil-painting">油画</option>
+              <option value="watercolor">水彩</option>
+              <option value="cyberpunk">赛博朋克</option>
+              <option value="minimalist">极简</option>
+              <option value="3d-render">3D</option>
+              <option value="pixel-art">像素</option>
+            </select>
+            <select id="qualitySelect" class="toolbar-select">
+              <option value="2K">2K</option>
+              <option value="4K">4K</option>
+            </select>
+          </div>
+          <button class="btn btn-send-icon" id="sendBtn" title="生成">↑</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-bar chat-view" id="dialogInputBar">
+      <div class="input-bar-card">
+        <textarea class="chat-input" id="dialogInput" placeholder="和 Gemini 3.1 Pro 聊天..." rows="3"></textarea>
+        <div class="attach-preview hidden" id="dialogAttachPreview"></div>
+        <div class="input-toolbar">
+          <div class="toolbar-left">
+            <button class="toolbar-ref-btn" id="dialogAttachBtn">参考图</button>            <select id="dialogModelSelect" class="toolbar-select">
+            <option value="gemini-3.1-pro-preview">✨ Gemini 3.1 Pro</option>
+            <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite (免费)</option>
+            <option value="gemini-2.5-pro-exp">Gemini 2.0 Flash (快速)</option>
+            <option value="gemini-3.1-flash-preview-thinking-128">⚡ Gemini 3.1 Flash</option>
+          </select>
+          </div>
+          <button class="btn btn-send-icon dialog-send-btn" id="dialogSendBtn" title="发送">↑</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== Lightbox ===== -->
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-content">
+    <button class="lightbox-close" id="lightboxClose">×</button>
+    <img src="" alt="">
+    <div class="lightbox-info"></div>
+  </div>
+  <div class="lightbox-actions">
+    <button id="lightboxDownload">↓ 下载</button>
+    <button id="lightboxRedo">↰ 做同款</button>
+    <button id="lightboxContinue">✏️ 继续修改</button>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== 设置弹窗 ===== -->
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal">
+    <h3>API Key 配置</h3>
+    <p class="modal-hint">Key 仅保存在浏览器本地</p>
+    <div class="form-group"><label>Google AI Studio (免费)</label><input type="password" class="apikey-input" data-provider="google" placeholder="AIzaSy..."></div>
+    <div class="form-group"><label>BLTCY AI</label><input type="password" class="apikey-input" data-provider="bltcy" placeholder="sk-..."></div>
+    <div class="form-group"><label>ChatGPT / OpenAI</label><input type="password" class="apikey-input" data-provider="chatgpt-image" placeholder="sk-..."></div>
+    <div class="form-group"><label>豆包 (火山引擎)</label><input type="password" class="apikey-input" data-provider="doubao" placeholder="..."></div>
+    <div class="modal-actions">
+      <button class="btn" id="settingsClose">取消</button>
+      <button class="btn btn-primary" onclick="window._saveSettings()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 项目弹窗 ===== -->
+<div class="modal-overlay hidden" id="projectModal">
+  <div class="modal">
+    <h3 id="projectModalTitle">新建项目</h3>
+    <div class="form-group"><label>项目名称</label><input type="text" id="projectNameInput" placeholder="输入项目名..."></div>
+    <div class="modal-actions">
+      <button class="btn" id="projectModalClose">取消</button>
+      <button class="btn btn-primary" id="projectModalSave">确认</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/providers.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
