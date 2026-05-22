@@ -263,8 +263,7 @@ class ImageProviders {
     var contents = [];
     for (var i = 0; i < messages.length; i++) {
       var m = messages[i];
-      var role = m.role === 'assistant' ? 'model' : 'user';
-      contents.push({ role: role, parts: [{ text: String(m.content) }] });
+      contents.push({ parts: [{ text: String(m.content) }], role: m.role === 'assistant' ? 'model' : 'user' });
     }
     var body = { contents: contents };
     console.log('[Google API] request:', JSON.stringify(body).substring(0, 200));
